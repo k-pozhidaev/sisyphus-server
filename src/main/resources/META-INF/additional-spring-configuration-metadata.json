@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "sisyphus-server.file-directory",
+      "type": "java.lang.String",
+      "description": "Path to saved files."
+    },
+    {
+      "name": "sisyphus-server.token",
+      "type": "java.lang.String",
+      "description": "Server access token."
+    }
+  ] }

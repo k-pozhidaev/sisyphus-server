@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: sisyphus
+  datasource:
+    # SET UP IN LOCAL PROFILE, IF IT NOT SAME
+    url: jdbc:h2:~/tmp/sisyph-db
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+  h2:
+    console:
+      enabled: true
+hibernate:
+  dialect: org.hibernate.dialect.H2Dialect
+logging:
+  level:
+    root: info
+sisyphus-server:
+  file-directory: ${HOME}/tmp/sisyphus
+  token: aW4gaW90IHMgc3RhbmRzIGZvciBzZWN1cml0eQo=
