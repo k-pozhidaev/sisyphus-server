@@ -3,4 +3,4 @@
 Spring TUSD Implementation
 
 
-[[https://travis-ci.org/k-pozhidaev/sisyphus-server.svg?branch=master]]
+[![Build Status](https://travis-ci.org/k-pozhidaev/sisyphus-server.svg?branch=master)](https://travis-ci.org/k-pozhidaev/sisyphus-server)
