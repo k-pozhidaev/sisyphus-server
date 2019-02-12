@@ -13,10 +13,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.*;
-import java.util.Objects;
 import java.util.function.Function;
 
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @Service
@@ -42,36 +41,33 @@ public class LocalStorage implements FileStorage {
             .reduce(0, Integer::sum);
     }
 
-    public Mono<Void> createFile(final Long id, final long fileSize) {
-        return Mono.fromRunnable(() -> {
+    public Mono<Path> createFile(final Long id) {
+        return Mono.fromSupplier(() -> {
             try {
-                Files.createFile(Paths.get(Objects.toString(id)));
-
+                return Files.createFile(Paths.get(fileDirectory.toString(), id.toString()));
             } catch (IOException e) {
-                throw new RuntimeException("creation failed");
+                throw new RuntimeException("File creation failed: " + id);
             }
         });
     }
 
     public Mono<Integer> writeChunk(final Long id, final Flux<DataBuffer> parts, final long offset, final long size) {
 
-        final Mono<AsynchronousFileChannel> channel = channelFunction.apply(Paths.get(id.toString()));
+        final Path file = Paths.get(fileDirectory.toString(), requireNonNull(id).toString());
+        final Mono<AsynchronousFileChannel> channel = channelFunction.apply(file);
 
         final Mono<Integer> writeAndGetWritten = channel
-            .flatMapMany(asynchronousFileChannel -> DataBufferUtils.write(parts, asynchronousFileChannel, offset))
+            .flatMapMany(asynchronousFileChannel -> DataBufferUtils.write(requireNonNull(parts), asynchronousFileChannel, offset))
             .map(dataBuffer -> {
                 final int capacity = dataBuffer.capacity();
                 DataBufferUtils.release(dataBuffer);
                 return capacity;
             })
-            .doOnComplete(() -> {
-                channel.subscribe(this::closeChannel);
-            })
-            .doOnError(throwable -> channel.subscribe(this::closeChannel))
-            .reduce(Integer::sum);
+            .reduce(Integer::sum)
+            .doOnSuccessOrError((integer, throwable) -> channel.subscribe(this::closeChannel));
 
 
-        return parts
+        return requireNonNull(parts)
             .map(DataBuffer::capacity)
             .reduce(Integer::sum)
             .map(integer -> {
@@ -84,7 +80,7 @@ public class LocalStorage implements FileStorage {
 
     }
 
-    private void closeChannel(final AsynchronousFileChannel asynchronousFileChannel){
+    void closeChannel(final AsynchronousFileChannel asynchronousFileChannel){
         try {
             asynchronousFileChannel.close();
         } catch (IOException e) {

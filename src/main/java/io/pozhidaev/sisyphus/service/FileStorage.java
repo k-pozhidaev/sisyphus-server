@@ -9,4 +9,5 @@ import reactor.core.publisher.Mono;
 
 public interface FileStorage {
     Mono<Integer> putObject(final Long id, final Flux<DataBuffer> parts);
+    Mono<Integer> writeChunk(final Long id, final Flux<DataBuffer> parts, final long offset, final long size);
 }
