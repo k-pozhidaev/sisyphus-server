@@ -33,6 +33,6 @@ public class TokenFilter implements WebFilter {
                 .filter(e -> e.equals(authToken.getLiteral()))
                 .findFirst()
                 .map(e -> webFilterChain.filter(serverWebExchange))
-                .orElseGet(() -> Mono.error(new Exception("Invalid token")));
+                .orElseGet(() -> Mono.error(new RuntimeException("Invalid token")));
     }
 }

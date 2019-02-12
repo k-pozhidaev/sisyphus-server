@@ -37,13 +37,13 @@ public class File {
 
 
     @PrePersist
-    private void onPersist(){
+    protected void onPersist(){
         createdAt = LocalDateTime.now(ZoneId.systemDefault());
         updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     @PreUpdate
-    private void onUpdate(){
+    protected void onUpdate(){
         updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 }
