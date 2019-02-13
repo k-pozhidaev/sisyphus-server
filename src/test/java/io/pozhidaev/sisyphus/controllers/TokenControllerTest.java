@@ -3,6 +3,7 @@ package io.pozhidaev.sisyphus.controllers;
 import io.pozhidaev.sisyphus.domain.Token;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,6 +24,7 @@ public class TokenControllerTest {
 
     @Test
     public void get_test()  {
+        Mockito.when(authToken.getLiteral()).thenReturn("test");
         webClient.get().uri("/api/v1/json/token").exchange()
                 .expectStatus()
                 .isOk()

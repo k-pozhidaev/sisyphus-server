@@ -20,7 +20,9 @@ public class TokenController {
 
     @GetMapping
     public Mono<Token> get(){
-        return Mono.just(authToken);
+        final Token token = new Token();
+        token.setLiteral(authToken.getLiteral());
+        return Mono.just(token);
     }
 
     @PostMapping

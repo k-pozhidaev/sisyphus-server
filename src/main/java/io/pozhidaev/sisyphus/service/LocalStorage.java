@@ -1,5 +1,6 @@
 package io.pozhidaev.sisyphus.service;
 
+import io.pozhidaev.sisyphus.domain.File;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,16 +42,19 @@ public class LocalStorage implements FileStorage {
             .reduce(0, Integer::sum);
     }
 
-    public Mono<Path> createFile(final Long id) {
+    @Override
+    public Mono<File> createFile(final File file) {
         return Mono.fromSupplier(() -> {
             try {
-                return Files.createFile(Paths.get(fileDirectory.toString(), id.toString()));
+                Files.createFile(Paths.get(fileDirectory.toString(), file.getId().toString()));
+                return file;
             } catch (IOException e) {
-                throw new RuntimeException("File creation failed: " + id);
+                throw new RuntimeException("File creation failed: " + file, e);
             }
         });
     }
 
+    @Override
     public Mono<Integer> writeChunk(final Long id, final Flux<DataBuffer> parts, final long offset, final long size) {
 
         final Path file = Paths.get(fileDirectory.toString(), requireNonNull(id).toString());

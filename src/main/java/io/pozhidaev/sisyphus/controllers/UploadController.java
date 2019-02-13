@@ -1,13 +1,11 @@
 package io.pozhidaev.sisyphus.controllers;
 
-import io.pozhidaev.sisyphus.domain.File;
 import io.pozhidaev.sisyphus.repository.FileRepository;
 import io.pozhidaev.sisyphus.service.UploadService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @Slf4j
@@ -38,15 +37,15 @@ public class UploadController {
 
     @GetMapping
     public Mono<ResponseEntity<?>> getFilesList(
-            @RequestParam(name = "page", defaultValue = "0") int page
-    ){
+        @RequestParam(name = "page", defaultValue = "0") int page
+    ) {
         return Mono
-                .fromSupplier(() -> ResponseEntity.ok(filesRepository.findAll(PageRequest.of(page, 50))));
+            .fromSupplier(() -> ResponseEntity.ok(filesRepository.findAll(PageRequest.of(page, 50))));
     }
 
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<?>> getFileInfo(@PathVariable("id") Long id){
+    public Mono<ResponseEntity<?>> getFileInfo(@PathVariable("id") Long id) {
         return Mono
             .fromSupplier(() ->
                 filesRepository.findById(id)
@@ -56,45 +55,48 @@ public class UploadController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<?>> uploadStart(
+    public Mono<ResponseEntity<Object>> uploadStart(
         @RequestHeader(name = "Upload-Length") final Long fileSize,
         @RequestHeader(name = "Upload-Metadata") final String metadata,
         @RequestHeader(name = "Mime-Type") final String mimeType,
         final UriComponentsBuilder uriComponentsBuilder,
         ServerHttpRequest request
     ) {
-        request.getHeaders().forEach((k,v) -> log.debug("headers: {} {}", k, v));
-
+        request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
 
         final Map<String, String> parsedMetadata = uploadService.parseMetadata(metadata);
+        //TODO hardcode is not acceptable!
 
-        final File file = filesRepository.save(File.builder()
-            .mimeType(mimeType)
-            .contentLength(fileSize)
-            .originalName(parsedMetadata.getOrDefault("filename", "FILE NAME NOT EXISTS"))
-            .contentOffset(0L)
-            .lastUploadedChunkNumber(0L)
-            .build());
-
-        return Mono.just(ResponseEntity.status(HttpStatus.CREATED)
-            .header("Access-Control-Expose-Headers", "Location, Tus-Resumable")
-            .header("Location", uriComponentsBuilder.path("upload/" + file.getId().toString())
-                .build()
-                .toString()
+        return uploadService
+            .createUpload(
+                fileSize,
+                parsedMetadata.getOrDefault("filename", "FILE NAME NOT EXISTS"),
+                mimeType
             )
-            .header("Tus-Resumable", "1.0.0")
-            .build());
+            .map(file -> uriComponentsBuilder.path("upload/" + file.getId().toString()).build().toUri())
+            .map(s -> ResponseEntity
+                .created(s)
+                .header("Access-Control-Expose-Headers", "Location, Tus-Resumable")
+                .header("Tus-Resumable", "1.0.0")
+                .build()
+            )
+            .doOnError(throwable -> log.error("Error on file create", throwable))
+            .onErrorReturn(ResponseEntity
+                .status(INTERNAL_SERVER_ERROR)
+                .build()
+            )
+        ;
     }
 
     @RequestMapping(
         method = {RequestMethod.POST, RequestMethod.PATCH,},
         value = {"/{id}"},
         consumes = {"application/offset+octet-stream"}
-        )
+    )
     public Mono<ResponseEntity<?>> uploadProcess(
         @PathVariable("id") final Long id,
         ServerHttpRequest request
-    )  {
+    ) {
         return
             uploadService
                 .uploadChunkAndGetUpdatedOffset(
@@ -112,7 +114,6 @@ public class UploadController {
     }
 
 
-
     @RequestMapping(method = RequestMethod.HEAD, value = "/{id}")
     public Mono<ResponseEntity<?>> header(@PathVariable("id") final Long id) {
         return Mono.just(filesRepository.findById(id).map(e ->
@@ -124,7 +125,7 @@ public class UploadController {
                 .header("Upload-Length", e.getContentLength().toString())
                 .header("Upload-Offset", e.getContentOffset().toString())
                 .build())
-            .orElseGet(() -> ResponseEntity.badRequest().build()));
+            .orElseGet(() -> ResponseEntity.notFound().build()));
     }
 
 
