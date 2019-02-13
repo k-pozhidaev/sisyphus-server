@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -33,6 +34,23 @@ public class UploadService {
         this.fileRepository = fileRepository;
     }
 
+    public Mono<File> createUpload(
+        final Long fileSize,
+        final String fileName,
+        final String mimeType
+    ){
+        return Mono.fromSupplier(() -> File.builder()
+                .mimeType(mimeType)
+                .contentLength(fileSize)
+                .originalName(fileName)
+                .contentOffset(0L)
+                .lastUploadedChunkNumber(0L)
+                .build())
+            .map(fileRepository::save)
+            .flatMap(fileStorage::createFile);
+
+    }
+
 
     public Mono<Long> uploadChunkAndGetUpdatedOffset(
             final Long id,
@@ -52,7 +70,7 @@ public class UploadService {
     }
 
     public Map<String, String> parseMetadata(final String metadata){
-        return Arrays.stream(metadata.split(","))
+        return Arrays.stream(Objects.requireNonNull(metadata).split(","))
             .map(v -> v.split(" "))
             .collect(Collectors.toMap(e -> e[0], e -> this.b64DecodeUnicode(e[1])));
     }

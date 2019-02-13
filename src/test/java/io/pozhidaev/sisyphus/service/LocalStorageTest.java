@@ -1,5 +1,6 @@
 package io.pozhidaev.sisyphus.service;
 
+import io.pozhidaev.sisyphus.domain.File;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,9 +71,11 @@ public class LocalStorageTest {
     @Test
     public void createFile() throws IOException {
         final Path fileDir = Files.createTempDirectory("fileDirectory").toAbsolutePath();
+
+        final File file = File.builder().id(1L).build();
         localStorage.setFileDirectory(fileDir);
-        localStorage.createFile(1L).subscribe(path ->
-            assertTrue(Files.exists(path))
+        localStorage.createFile(file).subscribe(path ->
+            assertTrue(Files.exists(Paths.get(fileDir.toString(), path.getId().toString())))
         );
     }
 
@@ -81,7 +84,9 @@ public class LocalStorageTest {
 
         final Path fileDir = Paths.get("fileDirectoryThatsNotExists");
         localStorage.setFileDirectory(fileDir);
-        localStorage.createFile(1L)
+
+        final File file = File.builder().id(1L).build();
+        localStorage.createFile(file)
             .doOnError(throwable -> assertEquals(throwable.getMessage(), "File creation failed: 1"))
             .subscribe(integer -> fail());
     }
@@ -90,7 +95,7 @@ public class LocalStorageTest {
     @Test
     public void writeChunk() throws IOException {
 
-        final Path filePath = filePathToWrite("writeChunk_test", "1");
+        final Path filePath = filePathToWrite("writeChunk_test");
         localStorage.setFileDirectory(filePath.getParent());
 
         localStorage.setChannelFunction(path -> Mono.fromSupplier(() -> {
@@ -130,7 +135,7 @@ public class LocalStorageTest {
 
     @Test
     public void writeChunk_bufferNotEqualsException() throws IOException {
-        final Path filePath = filePathToWrite("writeChunk_bufferNotEqualsException", "1");
+        final Path filePath = filePathToWrite("writeChunk_bufferNotEqualsException");
         localStorage.setFileDirectory(filePath.getParent());
 
         localStorage.setChannelFunction(path -> Mono.fromSupplier(() -> {
@@ -163,9 +168,9 @@ public class LocalStorageTest {
         localStorage.closeChannel(channel);
     }
 
-    private Path filePathToWrite(final String testName, final String fileName) throws IOException {
+    private Path filePathToWrite(final String testName) throws IOException {
         final Path fileDir = Files.createTempDirectory(testName).toAbsolutePath();
-        final Path filePath = Paths.get(fileDir.toString(), fileName);
+        final Path filePath = Paths.get(fileDir.toString(), "1");
         if (Files.exists(filePath)) Files.delete(filePath);
         return Files.createFile(filePath).toAbsolutePath();
     }

@@ -72,14 +72,15 @@ public class UploadControllerTest {
             }});
 
         Mockito
-            .when(filesRepository.save(File.builder()
+            .when(uploadService.createUpload(100L, "metadata", "plain/text"))
+            .thenReturn(Mono.just(File.builder()
+                .id(1L)
                 .mimeType("plain/text")
                 .contentLength(100L)
                 .originalName("metadata")
                 .contentOffset(0L)
                 .lastUploadedChunkNumber(0L)
-                .build()))
-            .thenReturn(File.builder().id(1L).build());
+                .build()));
 
         webClient
             .post()
