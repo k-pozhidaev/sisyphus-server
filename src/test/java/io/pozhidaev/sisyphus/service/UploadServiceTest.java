@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -19,6 +20,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @RunWith(SpringRunner.class)
 public class UploadServiceTest {
@@ -39,21 +43,56 @@ public class UploadServiceTest {
 
 
     @Test
+    public void createUpload() {
+
+        final File commingFile = File.builder()
+            .mimeType("application/test")
+            .contentLength(15L)
+            .originalName("test45")
+            .contentOffset(0L)
+            .lastUploadedChunkNumber(0L)
+            .build();
+
+        final File outcomeFile = File.builder()
+            .mimeType("application/test")
+            .contentLength(15L)
+            .originalName("test45")
+            .contentOffset(0L)
+            .lastUploadedChunkNumber(0L)
+            .id(1L)
+            .build();
+
+        Mockito
+            .when(fileRepository.save(commingFile))
+            .thenReturn(outcomeFile);
+
+        Mockito
+            .when(fileStorage.createFile(outcomeFile))
+            .thenReturn(Mono.just(outcomeFile));
+
+        uploadService
+            .createUpload(15L, "test45", "application/test")
+            .doOnError(throwable -> fail())
+            .subscribe(file -> assertEquals(file.getId(), outcomeFile.getId()))
+        ;
+    }
+
+    @Test
     public void uploadChunkAndGetUpdatedOffset() {
         DefaultDataBufferFactory factory = new DefaultDataBufferFactory();
         DefaultDataBuffer dataBuffer =
-                factory.wrap(ByteBuffer.wrap("foo".getBytes(StandardCharsets.UTF_8)));
+            factory.wrap(ByteBuffer.wrap("foo".getBytes(StandardCharsets.UTF_8)));
         Flux<DataBuffer> body = Flux.just(dataBuffer);
         final long id = 1L;
         final File file = File
-                .builder()
-                .id(id)
-                .originalName("test")
-                .contentLength(55L)
-                .mimeType("test")
-                .lastUploadedChunkNumber(0L)
-                .contentOffset(0L)
-                .build();
+            .builder()
+            .id(id)
+            .originalName("test")
+            .contentLength(55L)
+            .mimeType("test")
+            .lastUploadedChunkNumber(0L)
+            .contentOffset(0L)
+            .build();
 
         Mockito.when(fileStorage.putObject(id, body)).thenReturn(Mono.just(55));
         Mockito.when(fileRepository.getOne(id)).thenReturn(file);
