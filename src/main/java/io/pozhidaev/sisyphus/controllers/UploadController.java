@@ -2,17 +2,20 @@ package io.pozhidaev.sisyphus.controllers;
 
 import io.pozhidaev.sisyphus.repository.FileRepository;
 import io.pozhidaev.sisyphus.service.UploadService;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -54,18 +57,18 @@ public class UploadController {
             );
     }
 
+
     @PostMapping
     public Mono<ResponseEntity<Object>> uploadStart(
         @RequestHeader(name = "Upload-Length") final Long fileSize,
         @RequestHeader(name = "Upload-Metadata") final String metadata,
         @RequestHeader(name = "Mime-Type") final String mimeType,
-        final UriComponentsBuilder uriComponentsBuilder,
-        ServerHttpRequest request
+        @NonNull final UriComponentsBuilder uriComponentsBuilder,
+        @NonNull final ServerHttpRequest request
     ) {
         request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
 
         final Map<String, String> parsedMetadata = uploadService.parseMetadata(metadata);
-        //TODO hardcode is not acceptable!
 
         return uploadService
             .createUpload(
@@ -73,7 +76,12 @@ public class UploadController {
                 parsedMetadata.getOrDefault("filename", "FILE NAME NOT EXISTS"),
                 mimeType
             )
-            .map(file -> uriComponentsBuilder.path("upload/" + file.getId().toString()).build().toUri())
+            .map(file -> Stream.concat(
+                request.getPath().elements().stream().map(PathContainer.Element::value),
+                Stream.of(file.getId().toString())
+            ))
+            .map(stringStream -> stringStream.filter(s -> !"/".equals(s)).toArray(String[]::new))
+            .map(strings -> uriComponentsBuilder.pathSegment(strings).build().toUri())
             .map(s -> ResponseEntity
                 .created(s)
                 .header("Access-Control-Expose-Headers", "Location, Tus-Resumable")
@@ -85,7 +93,7 @@ public class UploadController {
                 .status(INTERNAL_SERVER_ERROR)
                 .build()
             )
-        ;
+            ;
     }
 
     @RequestMapping(
@@ -95,7 +103,7 @@ public class UploadController {
     )
     public Mono<ResponseEntity<?>> uploadProcess(
         @PathVariable("id") final Long id,
-        ServerHttpRequest request
+        @NonNull final ServerHttpRequest request
     ) {
         return
             uploadService
