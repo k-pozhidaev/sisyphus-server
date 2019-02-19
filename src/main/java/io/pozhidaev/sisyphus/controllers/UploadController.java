@@ -105,6 +105,7 @@ public class UploadController {
         @PathVariable("id") final Long id,
         @NonNull final ServerHttpRequest request
     ) {
+        request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
         return
             uploadService
                 .uploadChunkAndGetUpdatedOffset(
