@@ -14,6 +14,7 @@ import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -102,6 +103,10 @@ public class UploadControllerTest {
 
         Mockito.when(request.getBody())
             .thenReturn(body);
+        Mockito.when(request.getHeaders())
+            .thenReturn(new HttpHeaders(){{
+                put("test", Collections.singletonList("test"));
+            }});
         Mockito
             .when(uploadService.uploadChunkAndGetUpdatedOffset(1L, body))
             .thenReturn(Mono.just(3L));
