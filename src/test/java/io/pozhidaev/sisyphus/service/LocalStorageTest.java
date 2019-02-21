@@ -107,10 +107,10 @@ public class LocalStorageTest {
         }));
 
         localStorage
-            .writeChunk(1L, Flux.just(stringBuffer("foo"), stringBuffer("baz")), 0L, 6L)
+            .writeChunk(1L, Flux.just(stringBuffer("foo"), stringBuffer("baz")), 0L)
             .doOnSuccess(integer -> assertEquals(integer, Integer.valueOf(6)))
             .thenMany(
-                localStorage.writeChunk(1L, Flux.just(stringBuffer("bar")), 6L, 3L)
+                localStorage.writeChunk(1L, Flux.just(stringBuffer("bar")), 6L)
                     .doOnSuccess(integer -> assertEquals(integer, Integer.valueOf(3)))
             )
             .then()
@@ -147,7 +147,7 @@ public class LocalStorageTest {
         }));
 
         localStorage
-            .writeChunk(1L, Flux.just(stringBuffer("foo"), stringBuffer("baz")), 0L, 7L)
+            .writeChunk(1L, Flux.just(stringBuffer("foo"), stringBuffer("baz")), 0L)
             .doOnError(throwable -> assertEquals(throwable.getMessage(), "Buffer not equals size"))
             .subscribe(integer -> fail());
     }

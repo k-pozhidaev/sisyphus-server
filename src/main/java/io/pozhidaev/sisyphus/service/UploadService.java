@@ -54,11 +54,13 @@ public class UploadService {
 
     public Mono<Long> uploadChunkAndGetUpdatedOffset(
             final Long id,
-            final Flux<DataBuffer> parts
+            final Flux<DataBuffer> parts,
+            final long offset
+
     ) {
 
         return fileStorage
-            .putObject(id, parts)
+            .writeChunk(id, parts, offset)
             .map((e) -> {
                 final File file = fileRepository.getOne(id);
                 file.setContentOffset(file.getContentOffset() + e);

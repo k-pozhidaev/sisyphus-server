@@ -55,12 +55,12 @@ public class LocalStorage implements FileStorage {
     }
 
     @Override
-    public Mono<Integer> writeChunk(final Long id, final Flux<DataBuffer> parts, final long offset, final long size) {
+    public Mono<Integer> writeChunk(final Long id, final Flux<DataBuffer> parts, final long offset) {
 
         final Path file = Paths.get(fileDirectory.toString(), requireNonNull(id).toString());
         final Mono<AsynchronousFileChannel> channel = channelFunction.apply(file);
 
-        final Mono<Integer> writeAndGetWritten = channel
+        return channel
             .flatMapMany(asynchronousFileChannel -> DataBufferUtils.write(requireNonNull(parts), asynchronousFileChannel, offset))
             .map(dataBuffer -> {
                 final int capacity = dataBuffer.capacity();
@@ -69,18 +69,6 @@ public class LocalStorage implements FileStorage {
             })
             .reduce(Integer::sum)
             .doOnSuccessOrError((integer, throwable) -> channel.subscribe(this::closeChannel));
-
-
-        return requireNonNull(parts)
-            .map(DataBuffer::capacity)
-            .reduce(Integer::sum)
-            .map(integer -> {
-                if (!Long.valueOf(integer.longValue()).equals(size)) {
-                    throw new RuntimeException("Buffer not equals size");
-                }
-                return integer;
-            })
-            .then(writeAndGetWritten);
 
     }
 

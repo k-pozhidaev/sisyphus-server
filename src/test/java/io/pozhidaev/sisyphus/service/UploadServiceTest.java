@@ -94,10 +94,10 @@ public class UploadServiceTest {
             .contentOffset(0L)
             .build();
 
-        Mockito.when(fileStorage.putObject(id, body)).thenReturn(Mono.just(55));
+        Mockito.when(fileStorage.writeChunk(id, body, 0)).thenReturn(Mono.just(55));
         Mockito.when(fileRepository.getOne(id)).thenReturn(file);
 
-        final Mono<Long> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body);
+        final Mono<Long> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body, 0);
         longMono.subscribe(v -> Assert.assertEquals(v, new Long(55)));
     }
 
