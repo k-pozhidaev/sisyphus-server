@@ -20,7 +20,7 @@ public class File {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
-    @Column(name="MIME_TYPE")
+    @Column(name = "MIME_TYPE")
     private String mimeType;
     @Column(name = "CONTENT_LENGTH")
     private Long contentLength;

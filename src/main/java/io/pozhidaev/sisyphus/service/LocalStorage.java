@@ -1,6 +1,7 @@
 package io.pozhidaev.sisyphus.service;
 
 import io.pozhidaev.sisyphus.domain.File;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,6 @@ import java.io.InputStream;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.*;
 import java.util.function.Function;
-
-import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @Service
@@ -36,7 +35,10 @@ public class LocalStorage implements FileStorage {
     }
 
     @Override
-    public Mono<Integer> putObject(final Long id, final Flux<DataBuffer> parts) {
+    public Mono<Integer> putObject(
+        @NonNull final Long id,
+        @NonNull final Flux<DataBuffer> parts
+    ) {
         return parts
             .map(v -> flushBufferToFile(v, id))
             .reduce(0, Integer::sum);
@@ -55,13 +57,16 @@ public class LocalStorage implements FileStorage {
     }
 
     @Override
-    public Mono<Integer> writeChunk(final Long id, final Flux<DataBuffer> parts, final long offset) {
+    public Mono<Integer> writeChunk(
+        @NonNull final Long id,
+        @NonNull final Flux<DataBuffer> parts, final long offset
+    ) {
 
-        final Path file = Paths.get(fileDirectory.toString(), requireNonNull(id).toString());
+        final Path file = Paths.get(fileDirectory.toString(), id.toString());
         final Mono<AsynchronousFileChannel> channel = channelFunction.apply(file);
 
         return channel
-            .flatMapMany(asynchronousFileChannel -> DataBufferUtils.write(requireNonNull(parts), asynchronousFileChannel, offset))
+            .flatMapMany(asynchronousFileChannel -> DataBufferUtils.write(parts, asynchronousFileChannel, offset))
             .map(dataBuffer -> {
                 final int capacity = dataBuffer.capacity();
                 DataBufferUtils.release(dataBuffer);
@@ -72,7 +77,9 @@ public class LocalStorage implements FileStorage {
 
     }
 
-    void closeChannel(final AsynchronousFileChannel asynchronousFileChannel){
+    void closeChannel(
+        @NonNull final AsynchronousFileChannel asynchronousFileChannel
+    ){
         try {
             asynchronousFileChannel.close();
         } catch (IOException e) {
@@ -80,7 +87,10 @@ public class LocalStorage implements FileStorage {
         }
     }
 
-    private int flushBufferToFile(final DataBuffer dataBuffer, final Long id) {
+    private int flushBufferToFile(
+        @NonNull final DataBuffer dataBuffer,
+        @NonNull final Long id
+    ) {
         try {
             final InputStream inputStream = dataBuffer.asInputStream(true);
             int bytesLength = inputStream.available();
