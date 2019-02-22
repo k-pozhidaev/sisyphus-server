@@ -3,9 +3,11 @@ package io.pozhidaev.sisyphus.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class Token {
 
@@ -13,7 +15,4 @@ public class Token {
     private String literal;
 
 
-    public void setLiteral(String literal) {
-        this.literal = literal;
-    }
 }

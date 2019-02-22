@@ -134,25 +134,6 @@ public class LocalStorageTest {
     }
 
     @Test
-    public void writeChunk_bufferNotEqualsException() throws IOException {
-        final Path filePath = filePathToWrite("writeChunk_bufferNotEqualsException");
-        localStorage.setFileDirectory(filePath.getParent());
-
-        localStorage.setChannelFunction(path -> Mono.fromSupplier(() -> {
-            try {
-                return AsynchronousFileChannel.open(path, WRITE);
-            } catch (IOException e) {
-                throw new RuntimeException("File open operation fault", e);
-            }
-        }));
-
-        localStorage
-            .writeChunk(1L, Flux.just(stringBuffer("foo"), stringBuffer("baz")), 0L)
-            .doOnError(throwable -> assertEquals(throwable.getMessage(), "Buffer not equals size"))
-            .subscribe(integer -> fail());
-    }
-
-    @Test
     public void closeChannel() throws IOException {
         final AsynchronousFileChannel channel = Mockito.mock(AsynchronousFileChannel.class);
         Mockito.doNothing().when(channel).close();
