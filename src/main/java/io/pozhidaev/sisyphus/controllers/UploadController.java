@@ -48,7 +48,7 @@ public class UploadController {
 
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<?>> getFileInfo(@PathVariable("id") Long id) {
+    public Mono<ResponseEntity<?>> getFileInfo(@NonNull @PathVariable("id") Long id) {
         return Mono
             .fromSupplier(() ->
                 filesRepository.findById(id)

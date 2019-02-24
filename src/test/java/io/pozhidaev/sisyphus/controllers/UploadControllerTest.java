@@ -18,9 +18,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -64,6 +66,23 @@ public class UploadControllerTest {
             .expectBody(File.class);
     }
 
+
+    @Test(expected = NullPointerException.class)
+    public void getFileInfo_notNull() {
+        final UploadController uploadController = new UploadController(uploadService, filesRepository);
+        uploadController.getFileInfo(null);
+    }
+
+    @Test
+    public void getFileInfo_notFound(){
+        Mockito
+            .when(filesRepository.findById(1L))
+            .thenReturn(Optional.empty());
+        webClient.get().uri("/upload/1").exchange()
+            .expectStatus()
+            .isNotFound();
+    }
+
     @Test
     public void uploadStart() {
         Mockito
@@ -95,6 +114,45 @@ public class UploadControllerTest {
     }
 
     @Test
+    public void uploadStart_doOnError() {
+        Mockito
+            .when(uploadService.parseMetadata("testMetadata"))
+            .thenReturn(new HashMap<String, String>(){{
+                put("filename", "metadata");
+            }});
+
+        Mockito
+            .when(uploadService.createUpload(100L, "metadata", "plain/text"))
+            .thenReturn(Mono.error(new Exception()));
+
+        webClient
+            .post()
+            .uri("/upload")
+            .header("Upload-Length", "100")
+            .header("Upload-Metadata", "testMetadata")
+            .header("Mime-Type", "plain/text")
+            .exchange()
+            .expectStatus().is5xxServerError();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void uploadStart_nullPointer_1() {
+        final UploadController uploadController = new UploadController(uploadService, filesRepository);
+        uploadController.uploadStart(15L, "", "", null, null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void uploadStart_nullPointer_2() {
+
+        final UriComponentsBuilder mock = Mockito.mock(UriComponentsBuilder.class);
+        final UploadController uploadController = new UploadController(uploadService, filesRepository);
+        uploadController.uploadStart(15L, "", "", mock, null);
+
+    }
+
+
+
+    @Test
     public void uploadProcess() {
         DefaultDataBufferFactory factory = new DefaultDataBufferFactory();
         DefaultDataBuffer dataBuffer =
@@ -120,6 +178,19 @@ public class UploadControllerTest {
             });
     }
 
+    @Test(expected = NullPointerException.class)
+    public void uploadProcess_nullPointer_1() {
+        final ServerHttpRequest mock = Mockito.mock(ServerHttpRequest.class);
+        final UploadController uploadController = new UploadController(uploadService, filesRepository);
+        uploadController.uploadProcess(null, mock, 0);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void uploadProcess_nullPointer_2() {
+        final UploadController uploadController = new UploadController(uploadService, filesRepository);
+        uploadController.uploadProcess(1L, null, 0);
+    }
+
     @Test
     public void header() {
         Mockito
@@ -137,6 +208,25 @@ public class UploadControllerTest {
             .expectHeader().exists("Cache-Control")
             .expectHeader().exists("Location")
         ;
+    }
+
+    @Test
+    public void header_notFound() {
+        Mockito
+            .when(filesRepository.findById(1L))
+            .thenReturn(Optional.empty());
+        webClient
+            .head()
+            .uri("/upload/1")
+            .exchange()
+            .expectStatus().isNotFound()
+        ;
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void header_nullPointer() {
+        final UploadController uploadController = new UploadController(uploadService, filesRepository);
+        uploadController.header(null);
     }
 
     @Test

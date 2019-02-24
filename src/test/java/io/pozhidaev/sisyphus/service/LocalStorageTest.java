@@ -43,6 +43,16 @@ public class LocalStorageTest {
         assertTrue(Files.exists(Paths.get(fileDir.toString(), "1")));
     }
 
+    @Test(expected = NullPointerException.class)
+    public void putObject_nullPointer_1() {
+        localStorage.putObject(null, Flux.just(stringBuffer("foo")));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void putObject_nullPointer_2() {
+        localStorage.putObject(1L, null);
+    }
+
     @Test
     public void putObject_fileExists() throws IOException {
         Flux<DataBuffer> body = Flux.just(stringBuffer("foo"));
@@ -77,6 +87,11 @@ public class LocalStorageTest {
         localStorage.createFile(file).subscribe(path ->
             assertTrue(Files.exists(Paths.get(fileDir.toString(), path.getId().toString())))
         );
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createFile_nullPointer() {
+        localStorage.createFile(null);
     }
 
     @Test
@@ -133,6 +148,19 @@ public class LocalStorageTest {
             .subscribe();
     }
 
+    @Test(expected = NullPointerException.class)
+    public void writeChunk_nullPointer_1() {
+        localStorage
+            .writeChunk(null, Flux.just(stringBuffer("foo")), 0);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void writeChunk_nullPointer_2() {
+        localStorage
+            .writeChunk(1L, null, 0);
+
+    }
+
     @Test
     public void closeChannel() throws IOException {
         final AsynchronousFileChannel channel = Mockito.mock(AsynchronousFileChannel.class);
@@ -141,12 +169,27 @@ public class LocalStorageTest {
         localStorage.closeChannel(channel);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void closeChannel_nullPointer() {
+        localStorage.closeChannel(null);
+    }
+
     @Test(expected = RuntimeException.class)
     public void closeChannel_exception() throws IOException {
         final AsynchronousFileChannel channel = Mockito.mock(AsynchronousFileChannel.class);
         Mockito.doThrow(IOException.class).when(channel).close();
         final LocalStorage localStorage = new LocalStorage();
         localStorage.closeChannel(channel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void flushBufferToFile_nullPointer_1() {
+        localStorage.flushBufferToFile(null, 1L);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void flushBufferToFile_nullPointer_2() {
+        localStorage.flushBufferToFile(stringBuffer("fii"), null);
     }
 
     private Path filePathToWrite(final String testName) throws IOException {

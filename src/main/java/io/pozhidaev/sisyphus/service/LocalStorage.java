@@ -45,7 +45,7 @@ public class LocalStorage implements FileStorage {
     }
 
     @Override
-    public Mono<File> createFile(final File file) {
+    public Mono<File> createFile(@NonNull final File file) {
         return Mono.fromSupplier(() -> {
             try {
                 Files.createFile(Paths.get(fileDirectory.toString(), file.getId().toString()));
@@ -59,7 +59,8 @@ public class LocalStorage implements FileStorage {
     @Override
     public Mono<Integer> writeChunk(
         @NonNull final Long id,
-        @NonNull final Flux<DataBuffer> parts, final long offset
+        @NonNull final Flux<DataBuffer> parts,
+        final long offset
     ) {
 
         final Path file = Paths.get(fileDirectory.toString(), id.toString());
@@ -87,7 +88,7 @@ public class LocalStorage implements FileStorage {
         }
     }
 
-    private int flushBufferToFile(
+    int flushBufferToFile(
         @NonNull final DataBuffer dataBuffer,
         @NonNull final Long id
     ) {
