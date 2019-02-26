@@ -67,6 +67,7 @@ public class UploadController {
         @NonNull final ServerHttpRequest request
     ) {
         request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
+        log.debug("Content-Length {}", request.getHeaders().getContentLength());
 
         final Map<String, String> parsedMetadata = uploadService.parseMetadata(metadata);
 
@@ -107,6 +108,7 @@ public class UploadController {
     ) {
         request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
 
+        log.debug("Content-Length {}", request.getHeaders().getContentLength());
         return
             uploadService
                 .uploadChunkAndGetUpdatedOffset(
@@ -118,7 +120,7 @@ public class UploadController {
                 .map(e -> ResponseEntity
                     .status(NO_CONTENT)
                     .header("Access-Control-Expose-Headers", "Location, Tus-Resumable")
-                    .header("Upload-Offset", Long.toString(e))
+                    .header("Upload-Offset", Long.toString(e.getContentOffset()))
                     .header("Tus-Resumable", "1.0.0")
                     .build()
                 );
@@ -149,7 +151,7 @@ public class UploadController {
             .header("Tus-Resumable", "1.0.0")
             .header("Tus-Version", "1.0.0,0.2.2,0.2.1")
             .header("Tus-Extension", "creation,expiration")
-            .header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE")
+            .header("Access-Control-Allow-Methods", "GET,PUT,PATCH,POST,DELETE")
             .build());
     }
 

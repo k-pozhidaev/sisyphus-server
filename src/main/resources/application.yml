@@ -21,8 +21,8 @@ hibernate:
 logging:
   level:
     root: info
-#    io.pozhidaev: debug
-#    org.springframework: debug
+    io.pozhidaev: debug
+    org.springframework: debug
 sisyphus-server:
   file-directory: ${HOME}/tmp/sisyphus
   token: aW4gaW90IHMgc3RhbmRzIGZvciBzZWN1cml0eQo=

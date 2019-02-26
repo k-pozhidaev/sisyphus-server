@@ -52,23 +52,23 @@ public class UploadService {
     }
 
 
-    public Mono<Long> uploadChunkAndGetUpdatedOffset(
+    public Mono<File> uploadChunkAndGetUpdatedOffset(
             final Long id,
             final Flux<DataBuffer> parts,
             final long offset
 
     ) {
-
+        //TODO Check content length
         return fileStorage
             .writeChunk(id, parts, offset)
             .map((e) -> {
-                final File file = fileRepository.getOne(id);
+                final File file = fileRepository.findById(id).orElseThrow(() -> new RuntimeException("File record not found."));
                 file.setContentOffset(file.getContentOffset() + e);
                 file.setLastUploadedChunkNumber(file.getLastUploadedChunkNumber() + 1);
-                fileRepository.save(file);
-                fileRepository.flush();
-                return file.getContentOffset();
-            });
+                log.debug("File patching: {}", file);
+                return file;
+            })
+            .map(fileRepository::save);
     }
 
     public Map<String, String> parseMetadata(final String metadata){

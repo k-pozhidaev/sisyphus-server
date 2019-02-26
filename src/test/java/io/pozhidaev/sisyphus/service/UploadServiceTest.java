@@ -6,7 +6,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -20,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -95,10 +95,11 @@ public class UploadServiceTest {
             .build();
 
         Mockito.when(fileStorage.writeChunk(id, body, 0)).thenReturn(Mono.just(55));
-        Mockito.when(fileRepository.getOne(id)).thenReturn(file);
+        Mockito.when(fileRepository.findById(id)).thenReturn(Optional.of(file));
+        Mockito.when(fileRepository.save(file)).thenReturn(file);
 
-        final Mono<Long> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body, 0);
-        longMono.subscribe(v -> Assert.assertEquals(v, new Long(55)));
+        final Mono<File> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body, 0);
+        longMono.subscribe(v -> Assert.assertEquals(v.getContentOffset(), new Long(55)));
     }
 
     @Test

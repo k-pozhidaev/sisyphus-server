@@ -73,9 +73,8 @@ public class LocalStorage implements FileStorage {
                 DataBufferUtils.release(dataBuffer);
                 return capacity;
             })
-            .reduce(Integer::sum)
+            .reduce(0, Integer::sum)
             .doOnSuccessOrError((integer, throwable) -> channel.subscribe(this::closeChannel));
-
     }
 
     void closeChannel(
