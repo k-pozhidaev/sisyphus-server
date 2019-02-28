@@ -171,7 +171,7 @@ public class UploadControllerTest {
 
 
         final UploadController uploadController = new UploadController(uploadService, filesRepository);
-        uploadController.uploadProcess(1L, request, 0)
+        uploadController.uploadProcess(1L, request, 0, 0)
             .subscribe(v -> {
                 assertEquals(v.getStatusCode(), NO_CONTENT);
                 assertEquals(Objects.requireNonNull(v.getHeaders().get("Upload-Offset")).get(0), "3");
@@ -182,13 +182,13 @@ public class UploadControllerTest {
     public void uploadProcess_nullPointer_1() {
         final ServerHttpRequest mock = Mockito.mock(ServerHttpRequest.class);
         final UploadController uploadController = new UploadController(uploadService, filesRepository);
-        uploadController.uploadProcess(null, mock, 0);
+        uploadController.uploadProcess(null, mock, 0, 0);
     }
 
     @Test(expected = NullPointerException.class)
     public void uploadProcess_nullPointer_2() {
         final UploadController uploadController = new UploadController(uploadService, filesRepository);
-        uploadController.uploadProcess(1L, null, 0);
+        uploadController.uploadProcess(1L, null, 0, 0);
     }
 
     @Test

@@ -104,7 +104,8 @@ public class UploadController {
     public Mono<ResponseEntity<?>> uploadProcess(
         @NonNull @PathVariable("id") final Long id,
         @NonNull final ServerHttpRequest request,
-        @RequestHeader(name = "Upload-Offset") final long offset
+        @RequestHeader(name = "Upload-Offset") final long offset,
+        @RequestHeader(name = "Content-Length") final long length
     ) {
         request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
 
