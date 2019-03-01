@@ -17,21 +17,32 @@ import java.time.ZoneId;
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class File {
+
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "MIME_TYPE")
     private String mimeType;
+
     @Column(name = "CONTENT_LENGTH")
     private Long contentLength;
+
     @Column(name = "CONTENT_OFFSET")
     private Long contentOffset;
+
     @Column(name = "LAST_UPLOADED_CHUNK_NUMBER")
     private Long lastUploadedChunkNumber;
+
     @Column(name = "ORIGINAL_NAME")
     private String originalName;
+
+    @Column(name = "FINGERPRINT")
+    private String fingerprint;
+
     @Column(name = "CREATED_AT")
     private LocalDateTime createdAt;
+
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
 

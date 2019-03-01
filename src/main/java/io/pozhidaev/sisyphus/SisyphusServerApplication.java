@@ -6,10 +6,10 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @SpringBootApplication
 @EntityScan("io.pozhidaev.sisyphus.domain")
-public class SisyphusApplication {
+public class SisyphusServerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SisyphusApplication.class, args);
+		SpringApplication.run(SisyphusServerApplication.class, args);
 	}
 
 }

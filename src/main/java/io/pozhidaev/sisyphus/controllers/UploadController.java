@@ -145,7 +145,6 @@ public class UploadController {
 
     @RequestMapping(method = RequestMethod.OPTIONS)
     public Mono<ResponseEntity> processOptions() {
-        //TODO implement Tus-Max-Size
         return Mono.just(ResponseEntity
             .status(NO_CONTENT)
             .header("Access-Control-Expose-Headers", "Tus-Resumable, Tus-Version, Tus-Max-Size, Tus-Extension")

@@ -6,6 +6,7 @@ CREATE TABLE if not exists file
   content_offset BIGINT NOT NULL,
   last_uploaded_chunk_number BIGINT NOT NULL DEFAULT 0,
   original_name VARCHAR(500),
+  fingerprint VARCHAR(500) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
