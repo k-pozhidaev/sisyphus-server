@@ -102,6 +102,32 @@ public class UploadServiceTest {
         longMono.subscribe(v -> Assert.assertEquals(v.getContentOffset(), new Long(55)));
     }
 
+    @Test(expected = RuntimeException.class)
+    public void uploadChunkAndGetUpdatedOffset_notFound() {
+        DefaultDataBufferFactory factory = new DefaultDataBufferFactory();
+        DefaultDataBuffer dataBuffer =
+            factory.wrap(ByteBuffer.wrap("foo".getBytes(StandardCharsets.UTF_8)));
+        Flux<DataBuffer> body = Flux.just(dataBuffer);
+        final long id = 1L;
+        final File file = File
+            .builder()
+            .id(id)
+            .originalName("test")
+            .contentLength(55L)
+            .mimeType("test")
+            .lastUploadedChunkNumber(0L)
+            .contentOffset(0L)
+            .build();
+
+        Mockito.when(fileStorage.writeChunk(id, body, 0)).thenReturn(Mono.just(55));
+        Mockito.when(fileRepository.findById(id)).thenReturn(Optional.empty());
+        Mockito.when(fileRepository.save(file)).thenReturn(file);
+
+        final Mono<File> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body, 0);
+        longMono.subscribe(v -> Assert.assertEquals(v.getContentOffset(), new Long(55)));
+
+    }
+
     @Test
     public void parseMetadata() {
         final String test1 = "Test";
