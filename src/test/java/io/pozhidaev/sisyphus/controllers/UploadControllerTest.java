@@ -22,7 +22,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -91,8 +90,16 @@ public class UploadControllerTest {
                 put("filename", "metadata");
             }});
 
+        final File build = File.builder()
+                .mimeType("plain/text")
+                .contentLength(100L)
+                .originalName("metadata")
+                .contentOffset(0L)
+                .lastUploadedChunkNumber(0L)
+                .build();
+
         Mockito
-            .when(uploadService.createUpload(100L, "metadata", "plain/text"))
+            .when(uploadService.createUpload(build))
             .thenReturn(Mono.just(File.builder()
                 .id(1L)
                 .mimeType("plain/text")
@@ -121,8 +128,16 @@ public class UploadControllerTest {
                 put("filename", "metadata");
             }});
 
+        final File metadata = File.builder()
+                .id(1L)
+                .mimeType("plain/text")
+                .contentLength(100L)
+                .originalName("metadata")
+                .contentOffset(0L)
+                .lastUploadedChunkNumber(0L)
+                .build();
         Mockito
-            .when(uploadService.createUpload(100L, "metadata", "plain/text"))
+            .when(uploadService.createUpload(metadata))
             .thenReturn(Mono.error(new Exception()));
 
         webClient

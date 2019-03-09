@@ -1,5 +1,6 @@
 package io.pozhidaev.sisyphus.controllers;
 
+import io.pozhidaev.sisyphus.domain.File;
 import io.pozhidaev.sisyphus.repository.FileRepository;
 import io.pozhidaev.sisyphus.service.UploadService;
 import lombok.NonNull;
@@ -62,7 +63,7 @@ public class UploadController {
     public Mono<ResponseEntity<Object>> uploadStart(
         @RequestHeader(name = "Upload-Length") final Long fileSize,
         @RequestHeader(name = "Upload-Metadata") final String metadata,
-        @RequestHeader(name = "Mime-Type") final String mimeType,
+        @RequestHeader(name = "Mime-Type", defaultValue = "") final String mimeType,
         @NonNull final UriComponentsBuilder uriComponentsBuilder,
         @NonNull final ServerHttpRequest request
     ) {
@@ -71,15 +72,20 @@ public class UploadController {
 
         final Map<String, String> parsedMetadata = uploadService.parseMetadata(metadata);
 
+        final File file = File.builder()
+                .mimeType(mimeType)
+                .contentLength(fileSize)
+                .originalName(parsedMetadata.getOrDefault("filename", "FILE NAME NOT EXISTS"))
+                .contentOffset(0L)
+                .lastUploadedChunkNumber(0L)
+                .fingerprint(parsedMetadata.get("fingerprint"))
+                .build();
+
         return uploadService
-            .createUpload(
-                fileSize,
-                parsedMetadata.getOrDefault("filename", "FILE NAME NOT EXISTS"),
-                mimeType
-            )
-            .map(file -> Stream.concat(
+            .createUpload(file)
+            .map(f -> Stream.concat(
                 request.getPath().elements().stream().map(PathContainer.Element::value),
-                Stream.of(file.getId().toString())
+                Stream.of(f.getId().toString())
             ))
             .map(stringStream -> stringStream.filter(s -> !"/".equals(s)).toArray(String[]::new))
             .map(strings -> uriComponentsBuilder.pathSegment(strings).build().toUri())
@@ -105,7 +111,7 @@ public class UploadController {
         @NonNull @PathVariable("id") final Long id,
         @NonNull final ServerHttpRequest request,
         @RequestHeader(name = "Upload-Offset") final long offset,
-        @RequestHeader(name = "Content-Length") final long length
+        @RequestHeader(name = "Content-Length") final long length // TODO make in use
     ) {
         request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
 

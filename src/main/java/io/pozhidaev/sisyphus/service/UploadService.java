@@ -35,17 +35,9 @@ public class UploadService {
     }
 
     public Mono<File> createUpload(
-        final Long fileSize,
-        final String fileName,
-        final String mimeType
+        final File file
     ){
-        return Mono.fromSupplier(() -> File.builder()
-                .mimeType(mimeType)
-                .contentLength(fileSize)
-                .originalName(fileName)
-                .contentOffset(0L)
-                .lastUploadedChunkNumber(0L)
-                .build())
+        return Mono.fromSupplier(() -> file)
             .map(fileRepository::save)
             .flatMap(fileStorage::createFile);
 

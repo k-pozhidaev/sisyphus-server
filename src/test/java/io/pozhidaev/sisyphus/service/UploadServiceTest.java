@@ -71,7 +71,11 @@ public class UploadServiceTest {
             .thenReturn(Mono.just(outcomeFile));
 
         uploadService
-            .createUpload(15L, "test45", "application/test")
+            .createUpload(File.builder()
+                    .contentLength(15L)
+                    .originalName("test45")
+                    .mimeType("application/test")
+                    .build())
             .doOnError(throwable -> fail())
             .subscribe(file -> assertEquals(file.getId(), outcomeFile.getId()))
         ;
