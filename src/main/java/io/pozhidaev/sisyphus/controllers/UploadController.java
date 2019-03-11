@@ -68,7 +68,6 @@ public class UploadController {
         @NonNull final ServerHttpRequest request
     ) {
         request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
-        log.debug("Content-Length {}", request.getHeaders().getContentLength());
 
         final Map<String, String> parsedMetadata = uploadService.parseMetadata(metadata);
 
