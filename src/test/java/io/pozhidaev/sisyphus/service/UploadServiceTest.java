@@ -102,8 +102,8 @@ public class UploadServiceTest {
         Mockito.when(fileRepository.findById(id)).thenReturn(Optional.of(file));
         Mockito.when(fileRepository.save(file)).thenReturn(file);
 
-        final Mono<File> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body, 0);
-        longMono.subscribe(v -> Assert.assertEquals(v.getContentOffset(), new Long(55)));
+        final Mono<File> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body, 0,3);
+        longMono.subscribe(v -> Assert.assertEquals(v.getContentOffset(), new Long(3)));
     }
 
     @Test(expected = RuntimeException.class)
@@ -127,7 +127,7 @@ public class UploadServiceTest {
         Mockito.when(fileRepository.findById(id)).thenReturn(Optional.empty());
         Mockito.when(fileRepository.save(file)).thenReturn(file);
 
-        final Mono<File> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body, 0);
+        final Mono<File> longMono = uploadService.uploadChunkAndGetUpdatedOffset(id, body, 0,3);
         longMono.subscribe(v -> Assert.assertEquals(v.getContentOffset(), new Long(55)));
 
     }

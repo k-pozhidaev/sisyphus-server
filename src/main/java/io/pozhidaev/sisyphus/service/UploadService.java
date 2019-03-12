@@ -47,20 +47,24 @@ public class UploadService {
     public Mono<File> uploadChunkAndGetUpdatedOffset(
             final Long id,
             final Flux<DataBuffer> parts,
-            final long offset
-
+            final long offset,
+            final long length
     ) {
         //TODO Check content length
         return fileStorage
             .writeChunk(id, parts, offset)
             .map((e) -> {
-                final File file = fileRepository.findById(id).orElseThrow(() -> new RuntimeException("File record not found."));
-                file.setContentOffset(file.getContentOffset() + e);
+                final File file = fileRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("File record not found."));
+                log.info("[OLD OFFSET] {}", file.getContentOffset());
+                log.info("[OFFSET] {}", file.getContentOffset() + length);
+                file.setContentOffset(file.getContentOffset() + length);
                 file.setLastUploadedChunkNumber(file.getLastUploadedChunkNumber() + 1);
                 log.debug("File patching: {}", file);
+                fileRepository.save(file);
+                fileRepository.flush();
                 return file;
-            })
-            .map(fileRepository::save);
+            });
     }
 
     public Map<String, String> parseMetadata(final String metadata){
@@ -76,8 +80,9 @@ public class UploadService {
             value = Base64.getDecoder().decode(str);
             result = new String(value, UTF_8);
         } catch (IllegalArgumentException iae) {
+            final RuntimeException exception = new RuntimeException("Invalid encoding :'" + str + "'");
             log.warn("Invalid encoding :'{}'", str);
-            throw new RuntimeException("Invalid encoding :'" + str + "'");
+            throw exception;
         }
         return result;
     }

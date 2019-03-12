@@ -181,12 +181,12 @@ public class UploadControllerTest {
                 put("test", Collections.singletonList("test"));
             }});
         Mockito
-            .when(uploadService.uploadChunkAndGetUpdatedOffset(1L, body, 0))
+            .when(uploadService.uploadChunkAndGetUpdatedOffset(1L, body, 0, 3))
             .thenReturn(Mono.just(File.builder().contentOffset(3L).build()));
 
 
         final UploadController uploadController = new UploadController(uploadService, filesRepository);
-        uploadController.uploadProcess(1L, request, 0, 0)
+        uploadController.uploadProcess(1L, request, 0, 3)
             .subscribe(v -> {
                 assertEquals(v.getStatusCode(), NO_CONTENT);
                 assertEquals(Objects.requireNonNull(v.getHeaders().get("Upload-Offset")).get(0), "3");

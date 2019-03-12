@@ -110,17 +110,17 @@ public class UploadController {
         @NonNull @PathVariable("id") final Long id,
         @NonNull final ServerHttpRequest request,
         @RequestHeader(name = "Upload-Offset") final long offset,
-        @RequestHeader(name = "Content-Length") final long length // TODO make in use
+        @RequestHeader(name = "Content-Length") final long length
     ) {
         request.getHeaders().forEach((k, v) -> log.debug("headers: {} {}", k, v));
 
-        log.debug("Content-Length {}", request.getHeaders().getContentLength());
         return
             uploadService
                 .uploadChunkAndGetUpdatedOffset(
                     id,
                     request.getBody(),
-                    offset
+                    offset,
+                    length
                 )
                 .log()
                 .map(e -> ResponseEntity
