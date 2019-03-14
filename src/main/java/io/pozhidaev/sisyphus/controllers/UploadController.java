@@ -106,7 +106,7 @@ public class UploadController {
         value = {"/{id}"},
         consumes = {"application/offset+octet-stream"}
     )
-    public Mono<ResponseEntity<?>> uploadProcess(
+    public Mono<ResponseEntity<Object>> uploadProcess(
         @NonNull @PathVariable("id") final Long id,
         @NonNull final ServerHttpRequest request,
         @RequestHeader(name = "Upload-Offset") final long offset,
@@ -129,7 +129,9 @@ public class UploadController {
                     .header("Upload-Offset", Long.toString(e.getContentOffset()))
                     .header("Tus-Resumable", "1.0.0")
                     .build()
-                );
+                )
+                .doOnNext(r -> log.info("{}", r.getHeaders()))
+            ;
     }
 
 
