@@ -33,15 +33,6 @@ public class SisyphusServerConfiguration {
     private String token;
 
     @Bean
-    public NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer(
-        Environment environment,
-        ServerProperties serverProperties
-    ) {
-        serverProperties.setMaxHttpHeaderSize(DataSize.ofMegabytes(10));
-        return new NettyWebServerFactoryCustomizer(environment, serverProperties);
-    }
-
-    @Bean
     public Token authToken(){
         return Optional
                 .ofNullable(token)
