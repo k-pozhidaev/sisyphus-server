@@ -151,13 +151,13 @@ public class LocalStorageTest {
     @Test(expected = NullPointerException.class)
     public void writeChunk_nullPointer_1() {
         localStorage
-            .writeChunk(null, Flux.just(stringBuffer("foo")), 0);
+            .writeChunk(null, Flux.just(stringBuffer("foo")), 0).block();
     }
 
     @Test(expected = NullPointerException.class)
     public void writeChunk_nullPointer_2() {
         localStorage
-            .writeChunk(1L, null, 0);
+            .writeChunk(1L, null, 0).block();
 
     }
 
