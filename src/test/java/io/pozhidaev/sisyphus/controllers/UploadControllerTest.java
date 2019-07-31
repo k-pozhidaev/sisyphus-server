@@ -88,6 +88,7 @@ public class UploadControllerTest {
             .when(uploadService.parseMetadata("testMetadata"))
             .thenReturn(new HashMap<String, String>(){{
                 put("filename", "metadata");
+                put("fingerprint", "test-fing");
             }});
 
         final File build = File.builder()
@@ -96,6 +97,7 @@ public class UploadControllerTest {
                 .originalName("metadata")
                 .contentOffset(0L)
                 .lastUploadedChunkNumber(0L)
+                .fingerprint("test-fing")
                 .build();
 
         Mockito
@@ -107,6 +109,7 @@ public class UploadControllerTest {
                 .originalName("metadata")
                 .contentOffset(0L)
                 .lastUploadedChunkNumber(0L)
+                .fingerprint("test-fing")
                 .build()));
 
         webClient

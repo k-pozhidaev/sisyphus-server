@@ -40,9 +40,7 @@ public class UploadController {
     }
 
     @GetMapping
-    public Mono<ResponseEntity<?>> getFilesList(
-        @RequestParam(name = "page", defaultValue = "0") int page
-    ) {
+    public Mono<ResponseEntity<?>> getFilesList(@RequestParam(name = "page", defaultValue = "0") int page) {
         return Mono
             .fromSupplier(() -> ResponseEntity.ok(filesRepository.findAll(PageRequest.of(page, 50))));
     }
@@ -77,7 +75,7 @@ public class UploadController {
                 .originalName(parsedMetadata.getOrDefault("filename", "FILE NAME NOT EXISTS"))
                 .contentOffset(0L)
                 .lastUploadedChunkNumber(0L)
-                .fingerprint(parsedMetadata.get("fingerprint"))
+                .fingerprint(parsedMetadata.getOrDefault("fingerprint", "FINGERPRINT NAME NOT EXISTS"))
                 .build();
 
         return uploadService
