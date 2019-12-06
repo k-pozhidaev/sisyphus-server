@@ -8,9 +8,3 @@ script:
   - mvn clean install
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-deploy:
-  provider: script
-  script:  mvn deploy -s settings.xml
-  skip_cleanup: true
-  on:
-    tags: true
